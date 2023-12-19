@@ -1,0 +1,31 @@
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+}
+
+.loader-ring {
+    width: 80px;
+    height: 80px;
+    border: 8px solid #000000;
+    border-top: 8px solid transparent;
+    border-radius: 50%;
+    animation: loaderAnimation 2s linear infinite;
+}
+
+.progress-text {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+@keyframes loaderAnimation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

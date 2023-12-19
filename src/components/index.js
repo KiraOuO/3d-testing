@@ -1,8 +1,8 @@
-import { ComputersCanvas } from './canvas';
+import { ShoesModel } from './models';
 import ItemPage from './item/ItemPage.jsx';
-import Navbar from './Navbar.jsx';
-import Home from './main/Home.jsx';
-import Footer from './Footer.jsx'
+import Navbar from './technical/Fragments/Navbar.jsx';
+import Home from './ShowCase/Home.jsx';
+import Footer from './technical/Fragments/Footer.jsx'
 
 
 
@@ -12,5 +12,5 @@ export {
   ItemPage,
   Navbar,
   Footer,
-  ComputersCanvas
+  ShoesModel
 }
