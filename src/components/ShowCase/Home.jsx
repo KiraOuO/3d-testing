@@ -8,8 +8,9 @@ import styles from "./block.css";
 const Home = () => {
     const [shoes, setShoes] = useState([]);
     const { pathname } = useLocation();
+    const [lastClickTime, setLastClickTime] = useState(0);
     const navigate = useNavigate();
-    const [currentPage, setCurrentPage, setLastClickTime] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(6);
 
     useEffect(() => {
@@ -23,12 +24,12 @@ const Home = () => {
         window.scrollTo(0, 0);
     }, [pathname]);
 
-    const handleModelClick = (id) => {
+    const handleModelClick = (param) => {
         const currentTime = new Date().getTime();
         const delay = currentTime - lastClickTime;
 
         if (delay < 300) {
-            window.location.href = `/item?id=${id}`;
+            window.location.href=`/item?id=${param}`;
         } else {
             setLastClickTime(currentTime);
         }
@@ -47,9 +48,11 @@ const Home = () => {
                             key={index}
                             style={{ backgroundColor: 'rgba(128,128,128, 0.45)' }}
                             className="rounded-xl shadow-lg shadow-gray-950 bg-white w-full sm:w-full md:w-[340px] lg:w-[325px] xl:w-[280px] max-h-[320px] hover:shadow-xl hover:transform hover:shadow-gray-600 hover:scale-105 border border-white dark:border-[#2c2c2e] duration-300 border-t-8 border-x-8 sm:h-72 h-64 mt-7 overflow-hidden justify-between items-center mx-auto"
-                            onClick={() => handleModelClick(shoe.id)}
                         >
-                            <div className={`max-w-sm mx-auto text-center block w-full py-0 font-bold sm:h-52 h-44 uppercase tracking-wide text-gray-800`}>
+                            <div
+                                className={`max-w-sm mx-auto text-center block w-full py-0 font-bold sm:h-52 h-44 uppercase tracking-wide text-gray-800`}
+                                onClick={() => handleModelClick(shoe.id)}
+                            >
                                 <ShowCaseModels shoe={shoe} />
                             </div>
                             <div className="h-[110px] dark:bg-[#2c2c2e] bg-white">
