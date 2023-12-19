@@ -76,7 +76,7 @@ const Home = () => {
                             <h2 className="text-slate-700  dark:text-[#b0b3b8]">{shoe.brand}</h2>
                             <div
                                 className="text-xs mr-2 px-2 sm:w-12 w-10 mt-2 h-6 sm:h-9 font-semibold rounded uppercase hover:scale-125 duration-200 flex items-end ml-auto"
-                                onClick={() => navigate(`/item?url=${shoe.id}`)}
+                                onClick={() => navigate(`/item?id=${shoe.id}`)}
                             >
                                 <img
                                     src="/expand-screen.png"

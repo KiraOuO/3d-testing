@@ -4,15 +4,13 @@ import {Environment, OrbitControls, Preload, } from "@react-three/drei";
 import CanvasLoader from "../Loader.jsx";
 import * as THREE from 'three';
 import axios from "axios";
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader';
+import {GLTFLoader} from "three/examples/jsm/loaders/GLTFLoader.js";
 import {DRACOLoader} from "three/examples/jsm/loaders/DRACOLoader.js";
 import { Mesh} from "three";
 
 
 const ComputersCanvas = ({ shoe, camera, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
-    const [isTimerFinished, setTimerFinished] = useState(true);
-    let timer;
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -29,36 +27,13 @@ const ComputersCanvas = ({ shoe, camera, scaleFactor }) => {
         };
     }, []);
 
-    const startTimer = () => {
-        timer = setTimeout(() => {
-            setTimerFinished(true);
-        }, 10000);
-
-        return () => clearTimeout(timer);
-    };
-
-    useEffect(() => {
-        startTimer();
-
-        return () => clearTimeout(timer);
-    }, [isTimerFinished]);
-
-    const restartTimer = () => {
-        clearTimeout(timer);
-        startTimer();
-        setTimerFinished(false);
-    };
-
     return (
         <Canvas
-            onMouseUp={restartTimer}
-            onTouchEnd={restartTimer}
         >
             <Suspense fallback={<CanvasLoader />}>
                 <ambientLight />
                 <OrbitControls
                     ref={camera}
-                    autoRotate={isTimerFinished}
                     enableZoom={true}
                     enablePan={false}
                     maxPolarAngle={Math.PI}
