@@ -10,6 +10,8 @@ import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 const ShoesModel = ({ shoe, camera, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
+    const [isTimerFinished, setTimerFinished] = useState(true);
+    let timer;
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -70,8 +72,32 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
         }
     }, [loadedModel]);
 
+
+    const startTimer = () => {
+        timer = setTimeout(() => {
+            setTimerFinished(true);
+        }, 5000);
+
+        return () => clearTimeout(timer);
+    };
+
+    useEffect(() => {
+        startTimer();
+
+        return () => clearTimeout(timer);
+    }, [isTimerFinished]);
+
+    const restartTimer = () => {
+        clearTimeout(timer);
+        startTimer();
+        setTimerFinished(false);
+    };
+
+
     return (
-        <Canvas>
+        <Canvas
+            onMouseUp={restartTimer}
+            onTouchEnd={restartTimer}>
             <Suspense fallback={<CanvasLoader />}>
                 <ambientLight />
                 <OrbitControls
@@ -83,13 +109,14 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
                     enableDamping={true}
                     dampingFactor={0.25}
                     rotateSpeed={0.5}
+                    autoRotate={isTimerFinished}
                 />
                 {loadedModel && (
                     <mesh>
                         <group>
                             <primitive
                                 object={loadedModel}
-                                scale={isMobile ? 4 * scaleFactor : 11.8 * scaleFactor}
+                                scale={isMobile ? 21 * scaleFactor : 15.8 * scaleFactor}
                                 rotation={[-0.01, 1.5, -0.1]}
                                 position={[0, 0, 0]}
                             />

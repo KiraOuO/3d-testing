@@ -67,7 +67,7 @@ const ShowCaseModels = ({ shoe }) => {
     useEffect(() => {
         if (shouldAnimateReset && controls.current) {
             const initialTarget = new THREE.Vector3(0, 0, 0);
-            const initialPosition = new THREE.Vector3(25, 0, 0);
+            const initialPosition = new THREE.Vector3(23, 0, 0);
 
             const positionThreshold = 5;
             const animateReset = () => {
