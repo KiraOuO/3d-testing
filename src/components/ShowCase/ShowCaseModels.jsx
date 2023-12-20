@@ -25,14 +25,14 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
 
                 const gltfLoader = new GLTFLoader();
                 gltfLoader.setDRACOLoader(dracoLoader);
-                console.log(response.data);
                 const gltf = await new Promise((resolve, reject) => {
                     gltfLoader.parse(response.data, "", resolve, reject);
                 });
-                console.log(gltf.scene);
                 setLoadedModel(gltf.scene);
             } catch (error) {
                 console.error("Error loading 3D model:", error);
+                console.error("Error response data:", error.response.data);
+                console.error("Error status:", error.response.status);
             }
         };
 ``
