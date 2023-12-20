@@ -30,12 +30,12 @@ const ItemPage = () => {
                 const id = searchParams.get("id");
 
                 const responseShoe = await axios.post(
-                    `http://puppetpalm.com:8080/api/get-model-page/${id}`
+                    `https://puppetpalm.com:9999/api/get-model-page/${id}`
                 );
                 setTargetShoe(responseShoe);
 
                 const url =
-                    "http://puppetpalm.com:8080/files/get-file?directory=" +
+                    "https://puppetpalm.com:9999/files/get-file?directory=" +
                     id +
                     "&filename=" +
                     responseShoe.data.backgroundPath;

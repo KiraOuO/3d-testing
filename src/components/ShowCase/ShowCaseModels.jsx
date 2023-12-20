@@ -12,7 +12,7 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
     const [loadedModel, setLoadedModel] = useState(new Mesh());
 
     const url =
-        "http://puppetpalm.com:8080/files/get-file?directory=" +
+        "https://puppetpalm.com:9999/files/get-file?directory=" +
         shoe.id +
         "&filename=" +
         shoe.lowPolygonPath;
