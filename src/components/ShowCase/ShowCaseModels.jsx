@@ -26,7 +26,7 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
                 const gltfLoader = new GLTFLoader();
                 gltfLoader.setDRACOLoader(dracoLoader);
 
-                const gltf = await new Promise((resolve, reject) => {
+                const gltf = new Promise((resolve, reject) => {
                     gltfLoader.parse(response.data, "", resolve, reject);
                 });
                 setLoadedModel(gltf.scene);
