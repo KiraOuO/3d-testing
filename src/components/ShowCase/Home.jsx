@@ -15,7 +15,7 @@ const Home = () => {
 
     useEffect(() => {
         axios
-            .get(`http://puppetpalm.com:8080/api/get-showcase-page?page=${currentPage - 1}&size=${pageSize}`)
+            .get(`https://puppetpalm.com:9999/api/get-showcase-page?page=${currentPage - 1}&size=${pageSize}`)
             .then((response) => setShoes(response.data.content))
             .catch((error) => console.error('Error during the request:', error.message));
     }, [currentPage, pageSize]);
