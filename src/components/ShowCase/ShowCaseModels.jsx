@@ -18,9 +18,9 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
         "&filename=" +
         shoe.lowPolygonPath;
 
-    useBeforeUnload(() => {
-        setLoadedModel(undefined);
-    });
+    // useBeforeUnload(() => {
+    //     setLoadedModel(undefined);
+    // });
 
     useEffect(() => {
         const loadModel = async () => {

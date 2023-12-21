@@ -73,14 +73,6 @@ const ItemPage = () => {
         setContainerStyles(updatedContainerStyles);
     }, [background]);
 
-    const handleIncreaseSize = () => {
-        setScaleFactor((prevScale) => prevScale * 1.15);
-    };
-
-    const handleDecreaseSize = () => {
-        setScaleFactor((prevScale) => prevScale * 0.85);
-    };
-
     return (
         <div className="h-[300px] object-center">
             <button
@@ -91,16 +83,6 @@ const ItemPage = () => {
             >
                 <div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
                     <img src="/expand-screen.png" alt="expand screen" className="cursor-pointer" />
-                </div>
-            </button>
-            <button className="flex items-center my-6 h-6 w-12" onClick={handleIncreaseSize}>
-                <div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-l px-2 pt-1 font-semibold rounded justify-center uppercase items-center hover:bg-gray-700 flex">
-                    <p className="text-black">+</p>
-                </div>
-            </button>
-            <button className="flex items-center my-6 h-6 w-12" onClick={handleDecreaseSize}>
-                <div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-l px-2 pt-1 font-semibold rounded justify-center uppercase items-center hover:bg-gray-700 flex">
-                    <p className="text-black">-</p>
                 </div>
             </button>
             <div className="h-full w-full" style={containerStyles}>
