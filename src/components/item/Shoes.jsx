@@ -13,9 +13,10 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
     const [loadedModel, setLoadedModel] = useState(null);
     const [isTimerFinished, setTimerFinished] = useState(true);
     let timer;
+    const source = axios.CancelToken.source();
 
     useBeforeUnload(() => {
-        setLoadedModel(undefined);
+        source.cancel("Request canceled by user");
     });
 
     useEffect(() => {

@@ -18,9 +18,11 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
         "&filename=" +
         shoe.lowPolygonPath;
 
-    // useBeforeUnload(() => {
-    //     setLoadedModel(undefined);
-    // });
+    const source = axios.CancelToken.source();
+
+    useBeforeUnload(() => {
+        source.cancel("Request canceled by user");
+    });
 
     useEffect(() => {
         const loadModel = async () => {
