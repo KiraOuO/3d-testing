@@ -55,22 +55,35 @@ const ItemPage = () => {
     }, [location.search]);
 
     useEffect(() => {
-        const isMobile = window.innerWidth <= 768;
+        const updateContainerStyles = () => {
+            const isMobile = window.innerWidth <= 768;
 
-        const updatedContainerStyles = {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: isMobile ? "100%" : "100%",
-            height: isMobile ? "100%" : "100%",
-            zIndex: 1,
-            backgroundImage: `url(${background || ""})`,
-            backgroundSize: "fill",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center center",
+            const updatedContainerStyles = {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: isMobile ? "100%" : "100%",
+                height: isMobile ? "100%" : "100%",
+                zIndex: 1,
+                backgroundImage: `url(${background || ""})`,
+                backgroundSize: isMobile ? "cover" : "fill",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "center center",
+            };
+
+            setContainerStyles(updatedContainerStyles);
         };
 
-        setContainerStyles(updatedContainerStyles);
+        // Initial call
+        updateContainerStyles();
+
+        // Call on window resize
+        window.addEventListener("resize", updateContainerStyles);
+
+        // Cleanup the event listener on component unmount
+        return () => {
+            window.removeEventListener("resize", updateContainerStyles);
+        };
     }, [background]);
 
     return (
@@ -91,4 +104,5 @@ const ItemPage = () => {
         </div>
     );
 };
+
 export default ItemPage;

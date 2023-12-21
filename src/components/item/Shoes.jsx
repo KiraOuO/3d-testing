@@ -1,17 +1,17 @@
-import React, { Suspense, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
-import { Environment, OrbitControls, Preload } from "@react-three/drei";
+import React, { Suspense, useEffect, useState, useRef } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { Environment, OrbitControls, Preload, PerspectiveCamera } from "@react-three/drei";
 import CanvasLoader from "../technical/Loader.jsx";
 import * as THREE from "three";
 import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
-const ShoesModel = ({ shoe, camera, scaleFactor }) => {
+const ShoesModel = ({ shoe, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
     const [isTimerFinished, setTimerFinished] = useState(true);
-
+    const camera = useRef();
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -96,9 +96,8 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
             onTouchEnd={restartTimer}
         >
             <Suspense fallback={<CanvasLoader />}>
-                <ambientLight />
+                <PerspectiveCamera ref={camera} makeDefault position={[0, 0, 10]} fov={30} />
                 <OrbitControls
-                    ref={camera}
                     enableZoom={true}
                     enablePan={false}
                     maxPolarAngle={Math.PI}
@@ -107,14 +106,14 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
                     dampingFactor={0.25}
                     rotateSpeed={0.5}
                     autoRotate={isTimerFinished}
-                    focus={50}
+                    focus={10}
                 />
                 {loadedModel && (
                     <mesh>
                         <group>
                             <primitive
                                 object={loadedModel}
-                                scale={isMobile ? 21 * scaleFactor : 15.8 * scaleFactor}
+                                scale={isMobile ? 6 * scaleFactor : 15.8 * scaleFactor}
                                 rotation={[-0.01, 1.5, -0.1]}
                                 position={[0, 0, 0]}
                             />
