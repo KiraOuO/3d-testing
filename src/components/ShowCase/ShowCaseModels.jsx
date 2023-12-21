@@ -18,12 +18,6 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
         "&filename=" +
         shoe.lowPolygonPath;
 
-    const source = axios.CancelToken.source();
-
-    useBeforeUnload(() => {
-        source.cancel("Request canceled by user");
-    });
-
     useEffect(() => {
         const loadModel = async () => {
             try {
@@ -42,12 +36,9 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
                 console.error("Error status:", error.response.status);
             }
         };
-
+``
         loadModel();
-        return () => {
-            source.cancel("Component unmounted");
-        };
-    }, [shoe, source]);
+    }, [url]);
 
     return (
         <mesh ref={forwardedRef}>

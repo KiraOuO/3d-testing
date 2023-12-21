@@ -12,11 +12,7 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
     const [isTimerFinished, setTimerFinished] = useState(true);
-    const source = axios.CancelToken.source();
 
-    useBeforeUnload(() => {
-        source.cancel("Request canceled by user");
-    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -56,10 +52,8 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
 
         fetchData();
 
-        return () => {
-            source.cancel("Component unmounted");
-        };
-    }, [shoe, source]);
+
+    }, [shoe]);
 
     useEffect(() => {
         if (loadedModel) {
