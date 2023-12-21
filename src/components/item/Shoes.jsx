@@ -6,12 +6,17 @@ import * as THREE from "three";
 import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import {useBeforeUnload} from "react-router-dom";
 
 const ShoesModel = ({ shoe, camera, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
     const [isTimerFinished, setTimerFinished] = useState(true);
     let timer;
+
+    useBeforeUnload(() => {
+        setLoadedModel(undefined);
+    });
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -110,6 +115,7 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
                     dampingFactor={0.25}
                     rotateSpeed={0.5}
                     autoRotate={isTimerFinished}
+                    focus={50}
                 />
                 {loadedModel && (
                     <mesh>

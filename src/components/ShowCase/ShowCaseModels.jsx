@@ -7,6 +7,7 @@ import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { Mesh } from "three";
+import {useBeforeUnload} from "react-router-dom";
 
 const Shoe = ({ isMobile, shoe, forwardedRef }) => {
     const [loadedModel, setLoadedModel] = useState(new Mesh());
@@ -16,6 +17,10 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
         shoe.id +
         "&filename=" +
         shoe.lowPolygonPath;
+
+    useBeforeUnload(() => {
+        setLoadedModel(undefined);
+    });
 
     useEffect(() => {
         const loadModel = async () => {
