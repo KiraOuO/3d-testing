@@ -40,9 +40,6 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
                     return;
                 }
 
-                const controller = new AbortController();
-                const { signal } = controller;
-
                 const url =
                     "https://puppetpalm.com:9999/files/get-file?directory=" +
                     shoe.data.id +
@@ -51,7 +48,6 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
 
                 const responseModel = await axios.get(url, {
                     responseType: "arraybuffer",
-                    signal, // Pass the signal to the request
                 });
 
                 const dracoLoader = new DRACOLoader();
@@ -69,47 +65,7 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
         };
 
         fetchData();
-
-        // Cleanup function to cancel the request when the component is unmounted
-        return () => {
-            controller.abort();
-            setLoadedModel(null);
-        };
     }, [shoe]);
-
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         try {
-    //             if (!shoe || !shoe.data) {
-    //                 return;
-    //             }
-    //
-    //             const url =
-    //                 "https://puppetpalm.com:9999/files/get-file?directory=" +
-    //                 shoe.data.id +
-    //                 "&filename=" +
-    //                 shoe.data.highPolygonPath;
-    //
-    //             const responseModel = await axios.get(url, {
-    //                 responseType: "arraybuffer",
-    //             });
-    //
-    //             const dracoLoader = new DRACOLoader();
-    //             const gltfLoader = new GLTFLoader();
-    //             gltfLoader.setDRACOLoader(dracoLoader);
-    //
-    //             const gltf = await new Promise((resolve, reject) => {
-    //                 gltfLoader.parse(responseModel.data, "", resolve, reject);
-    //             });
-    //
-    //             setLoadedModel(gltf.scene);
-    //         } catch (error) {
-    //             console.error("Error during the request:", error.message);
-    //         }
-    //     };
-    //
-    //     fetchData();
-    // }, [shoe]);
 
     useEffect(() => {
         if (loadedModel) {
