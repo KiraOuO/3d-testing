@@ -42,9 +42,12 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
                 console.error("Error status:", error.response.status);
             }
         };
-``
+
         loadModel();
-    }, [url]);
+        return () => {
+            source.cancel("Component unmounted");
+        };
+    }, [shoe, source]);
 
     return (
         <mesh ref={forwardedRef}>

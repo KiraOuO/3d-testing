@@ -6,33 +6,17 @@ import * as THREE from "three";
 import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import {useBeforeUnload} from "react-router-dom";
+import { useBeforeUnload } from "react-router-dom";
 
 const ShoesModel = ({ shoe, camera, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
     const [isTimerFinished, setTimerFinished] = useState(true);
-    let timer;
     const source = axios.CancelToken.source();
 
     useBeforeUnload(() => {
         source.cancel("Request canceled by user");
     });
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia("(max-width: 500px)");
-        setIsMobile(mediaQuery.matches);
-
-        const handleMediaQueryChange = (event) => {
-            setIsMobile(event.matches);
-        };
-
-        mediaQuery.addEventListener("change", handleMediaQueryChange);
-
-        return () => {
-            mediaQuery.removeEventListener("change", handleMediaQueryChange);
-        };
-    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -49,6 +33,7 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
 
                 const responseModel = await axios.get(url, {
                     responseType: "arraybuffer",
+                    cancelToken: source.token,
                 });
 
                 const dracoLoader = new DRACOLoader();
@@ -61,12 +46,20 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
 
                 setLoadedModel(gltf.scene);
             } catch (error) {
-                console.error("Error during the request:", error.message);
+                if (axios.isCancel(error)) {
+                    console.log("Request canceled:", error.message);
+                } else {
+                    console.error("Error during the request:", error.message);
+                }
             }
         };
 
         fetchData();
-    }, [shoe]);
+
+        return () => {
+            source.cancel("Component unmounted");
+        };
+    }, [shoe, source]);
 
     useEffect(() => {
         if (loadedModel) {
@@ -78,9 +71,8 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
         }
     }, [loadedModel]);
 
-
     const startTimer = () => {
-        timer = setTimeout(() => {
+        const timer = setTimeout(() => {
             setTimerFinished(true);
         }, 5000);
 
@@ -88,22 +80,20 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
     };
 
     useEffect(() => {
-        startTimer();
+        const timer = startTimer();
 
         return () => clearTimeout(timer);
     }, [isTimerFinished]);
 
     const restartTimer = () => {
-        clearTimeout(timer);
-        startTimer();
         setTimerFinished(false);
     };
-
 
     return (
         <Canvas
             onMouseUp={restartTimer}
-            onTouchEnd={restartTimer}>
+            onTouchEnd={restartTimer}
+        >
             <Suspense fallback={<CanvasLoader />}>
                 <ambientLight />
                 <OrbitControls
@@ -136,4 +126,5 @@ const ShoesModel = ({ shoe, camera, scaleFactor }) => {
         </Canvas>
     );
 };
+
 export default ShoesModel;
