@@ -66,10 +66,11 @@ const ItemPage = () => {
                 height: isMobile ? "100%" : "100%",
                 zIndex: 1,
                 backgroundImage: `url(${background || ""})`,
-                backgroundSize: isMobile ? "cover" : "fill",
+                backgroundSize: isMobile ? "cover" : "100% 220%",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "center center",
             };
+
 
             setContainerStyles(updatedContainerStyles);
         };
