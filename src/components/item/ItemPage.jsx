@@ -92,7 +92,7 @@ const ItemPage = () => {
             <button
                 className="flex items-center my-6 h-6 w-12"
                 onClick={() => {
-                    window.location.href = "/";
+                    window.history.back();
                 }}
             >
                 <div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
