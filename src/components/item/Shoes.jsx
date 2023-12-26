@@ -108,6 +108,33 @@ const ShoesModel = ({ shoe, scaleFactor }) => {
                     autoRotate={isTimerFinished}
                     focus={10}
                 />
+                <directionalLight
+                    position={[0, -10, 0]}
+                    intensity={2.5}
+                    color={0xffffff}
+                    castShadow
+                    shadow-mapSize-width={512}
+                    shadow-mapSize-height={512}
+                    shadow-camera-far={100}
+                    shadow-camera-left={-10}
+                    shadow-camera-right={10}
+                    shadow-camera-top={10}
+                    shadow-camera-bottom={-10}
+                />
+                <directionalLight
+                    position={[10, 2, 5]}
+                    intensity={2}
+                    color={0xffffff}
+                    castShadow
+                    shadow-mapSize-width={512}
+                    shadow-mapSize-height={512}
+                    shadow-camera-far={100}
+                    shadow-camera-left={-10}
+                    shadow-camera-right={10}
+                    shadow-camera-top={10}
+                    shadow-camera-bottom={-10}
+                />
+
                 {loadedModel && (
                     <mesh>
                         <group>
