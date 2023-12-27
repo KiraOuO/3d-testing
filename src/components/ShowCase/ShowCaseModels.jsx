@@ -7,7 +7,7 @@ import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { Mesh } from "three";
-import {useBeforeUnload} from "react-router-dom";
+import { useBeforeUnload } from "react-router-dom";
 
 const Shoe = ({ isMobile, shoe, forwardedRef }) => {
     const [loadedModel, setLoadedModel] = useState(new Mesh());
@@ -36,7 +36,7 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
                 console.error("Error status:", error.response.status);
             }
         };
-``
+
         loadModel();
     }, [url]);
 
@@ -55,41 +55,64 @@ const Shoe = ({ isMobile, shoe, forwardedRef }) => {
     );
 };
 
+
 const ShowCaseModels = ({ shoe }) => {
     const canvasRef = useRef(null);
-    const [isMobile] = useState(false);
-    const meshRef = useRef();
     const controls = useRef();
+    const meshRef = useRef();
     const [shouldAnimateReset, setShouldAnimateReset] = useState(false);
+    const [isMobile] = useState(false);
 
     const handleResetCamera = () => {
         setShouldAnimateReset(true);
     };
+
+
+    useEffect(() => {
+        const handleWindowMouseUp = () => {
+            handleResetCamera();
+        };
+
+        window.addEventListener("mouseup", handleWindowMouseUp);
+
+        return () => {
+            window.removeEventListener("mouseup", handleWindowMouseUp);
+        };
+    }, []);
 
     useEffect(() => {
         if (shouldAnimateReset && controls.current) {
             const initialTarget = new THREE.Vector3(0, 0, 0);
             const initialPosition = new THREE.Vector3(23, 0, 0);
 
-            const positionThreshold = 5;
-            const animateReset = () => {
-                controls.current.target.lerp(initialTarget, 0.1);
-                controls.current.object.position.lerp(initialPosition, 0.1);
+            const duration = 500;
 
-                const isTargetClose = controls.current.target.equals(initialTarget);
-                const isPositionClose =
-                    controls.current.object.position.distanceTo(initialPosition) <
-                    positionThreshold;
+            const cubicEaseInOut = (t) => (t < 2 ? 4 * t ** 3 : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-                if (!isTargetClose || !isPositionClose) {
-                    requestAnimationFrame(animateReset);
-                } else {
-                    setShouldAnimateReset(false);
-                }
+            const updateAnimation = () => {
+                const startTime = Date.now();
+                const update = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(1, elapsed / duration);
+
+                    const easedProgress = cubicEaseInOut(progress);
+
+                    controls.current.target.lerp(initialTarget, easedProgress);
+                    controls.current.object.position.lerp(initialPosition, easedProgress);
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        setShouldAnimateReset(false);
+                    }
+                };
+
+                update();
             };
-            animateReset();
+
+            updateAnimation();
         }
-    }, [shouldAnimateReset]);
+    }, [shouldAnimateReset, controls.current]);
 
     return (
         <Canvas
@@ -113,15 +136,39 @@ const ShowCaseModels = ({ shoe }) => {
                     dampingFactor={0.25}
                     rotateSpeed={0.4}
                 />
-                <Shoe
-                    forwardedRef={meshRef}
-                    isMobile={isMobile}
-                    shoe={shoe}
+                <directionalLight
+                    position={[0, -10, 0]}
+                    intensity={2.5}
+                    color={0xffffff}
+                    castShadow
+                    shadow-mapSize-width={512}
+                    shadow-mapSize-height={512}
+                    shadow-camera-far={100}
+                    shadow-camera-left={-10}
+                    shadow-camera-right={10}
+                    shadow-camera-top={10}
+                    shadow-camera-bottom={-10}
                 />
+                <directionalLight
+                    position={[10, 2, 5]}
+                    intensity={2}
+                    color={0xffffff}
+                    castShadow
+                    shadow-mapSize-width={512}
+                    shadow-mapSize-height={512}
+                    shadow-camera-far={100}
+                    shadow-camera-left={-10}
+                    shadow-camera-right={10}
+                    shadow-camera-top={10}
+                    shadow-camera-bottom={-10}
+                />
+
+                <Shoe forwardedRef={meshRef} isMobile={isMobile} shoe={shoe} />
                 <Environment preset="city" background={false} />
             </Suspense>
             <Preload all />
         </Canvas>
     );
 };
+
 export default ShowCaseModels;
