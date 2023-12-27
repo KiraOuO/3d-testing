@@ -180,6 +180,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                     shadow-camera-bottom={-10}
                 />
 
+
                 {loadedModel && (
                     <mesh>
                         <group>
