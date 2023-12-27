@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState, useRef } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { Environment, OrbitControls, Preload, PerspectiveCamera } from "@react-three/drei";
 import CanvasLoader from "../technical/Loader.jsx";
 import * as THREE from "three";
@@ -7,11 +7,16 @@ import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
-const ShoesModel = ({ shoe, scaleFactor }) => {
+const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
     const [isTimerFinished, setTimerFinished] = useState(true);
     const camera = useRef();
+    const canvasRef = useRef();
+    const controls = useRef();
+    const pointerDown = useRef(false);
+    const previousPointerPosition = useRef({ x: 0, y: 0 });
+    const timerRef = useRef(null);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -72,42 +77,82 @@ const ShoesModel = ({ shoe, scaleFactor }) => {
         }
     }, [loadedModel]);
 
-    const startTimer = () => {
-        const timer = setTimeout(() => {
-            setTimerFinished(true);
-        }, 5000);
-
-        return () => clearTimeout(timer);
+    const handlePointerDown = (event) => {
+        pointerDown.current = true;
+        previousPointerPosition.current = {
+            x: event.clientX,
+            y: event.clientY,
+        };
+        restartTimer();
     };
 
-    useEffect(() => {
-        const timer = startTimer();
+    const handlePointerMove = (event) => {
+        if (!pointerDown.current) return;
 
-        return () => clearTimeout(timer);
-    }, [isTimerFinished]);
+        const deltaX = event.clientX - previousPointerPosition.current.x;
+        const deltaY = event.clientY - previousPointerPosition.current.y;
+
+        if (camera.current) {
+            camera.current.rotation.x += deltaY * 0.01;
+            camera.current.rotation.y += deltaX * 0.01;
+        }
+
+        previousPointerPosition.current = {
+            x: event.clientX,
+            y: event.clientY,
+        };
+    };
+
+    const handlePointerUp = () => {
+        pointerDown.current = false;
+    };
 
     const restartTimer = () => {
         setTimerFinished(false);
+
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+
+        timerRef.current = setTimeout(() => {
+            setTimerFinished(true);
+            controls.current.autoRotate = isTimerFinished;
+            restartTimer();
+        }, 3000);
     };
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+
+        if (canvas) {
+            canvas.addEventListener("pointerdown", handlePointerDown);
+            canvas.addEventListener("pointermove", handlePointerMove);
+            canvas.addEventListener("pointerup", handlePointerUp);
+
+            return () => {
+                canvas.removeEventListener("pointerdown", handlePointerDown);
+                canvas.removeEventListener("pointermove", handlePointerMove);
+                canvas.removeEventListener("pointerup", handlePointerUp);
+            };
+        }
+    }, []);
 
     return (
         <Canvas
-            onMouseUp={restartTimer}
-            onTouchEnd={restartTimer}
+            gl={gl}
+            onCreated={({ gl }) => {
+                gl.shadowMap.enabled = true;
+                gl.shadowMap.type = THREE.PCFSoftShadowMap;
+            }}
+            ref={canvasRef}
         >
             <Suspense fallback={<CanvasLoader />}>
                 <PerspectiveCamera ref={camera} makeDefault position={[0, 0, 10]} fov={30} />
                 <OrbitControls
-                    enableZoom={true}
-                    enablePan={false}
-                    maxPolarAngle={Math.PI}
-                    minPolarAngle={0}
-                    enableDamping={true}
-                    dampingFactor={0.25}
-                    rotateSpeed={0.5}
+                    target={[0, 0, 0]}
                     autoRotate={isTimerFinished}
-                    focus={10}
                 />
+
                 <directionalLight
                     position={[0, -10, 0]}
                     intensity={2.5}
