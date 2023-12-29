@@ -4,8 +4,9 @@ import {useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import styles from "./block.css";
+import {getThemeFromLocalStorage} from "../technical/ThemeStorage.js";
 
-const Home = () => {
+const Home = ({temp}) => {
     const [shoes, setShoes] = useState({
         content: [],
         pageable: {
@@ -34,19 +35,18 @@ const Home = () => {
         first: false,
         empty: false,
     });
-
     const {pathname} = useLocation();
     const [lastClickTime, setLastClickTime] = useState(0);
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const [currentSize, setCurrentSize] = useState(6);
+    const [background, setBackground] = useState(null);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const pageParam = searchParams.get("page");
         const sizeParam = searchParams.get("size");
 
-        // Convert the string values to numbers
         const page = pageParam ? parseInt(pageParam, 10) : 1;
         const size = sizeParam ? parseInt(sizeParam, 10) : 6;
 
@@ -58,6 +58,32 @@ const Home = () => {
             .then((response) => setShoes(response.data))
             .catch((error) => console.error('Error during the request:', error.message));
     }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                let response = await axios.get('https://puppetpalm.com:9999/background-api/get-showcase-background?name=' + getThemeFromLocalStorage());
+                const url = "https://puppetpalm.com:9999/files/get-file?" +
+                    "directory=" +
+                    response.data.directory +
+                    "&filename=" +
+                    response.data.fileName;
+
+                response = await axios.get(url, {
+                    responseType: "arraybuffer",
+                });
+                let arrayBufferView = new Uint8Array(response.data);
+                const blob = new Blob([arrayBufferView], { type: "image/jpeg" });
+                const imageUrl = URL.createObjectURL(blob);
+
+                setBackground(imageUrl);
+            } catch (error) {
+                console.error('Error during the request:', error.message);
+            }
+        };
+
+        fetchData();
+    }, [temp]);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -76,7 +102,7 @@ const Home = () => {
 
 
     return (
-        <section className={'flex flex-col min-h-screen bg-cover bg-mainbg'}>
+        <section className={'flex flex-col min-h-screen bg-cover'} style={{ backgroundImage: `url(${background})`}}>
             <div className="pb-12 flex justify-center items-center h-full mb-0 relative">
                 <div className="mx-auto grid max-w-6xl gap-6 max-[375px]:grid-cols-1 grid-cols-2 lg:grid-cols-3">
                     {shoes.content.map((shoe, index) => (
@@ -124,14 +150,6 @@ const Home = () => {
                                     Previous
                                 </a>
                             )}
-                            {/*{*/}
-                            {/*    shoes.totalElements > 0 && (*/}
-                            {/*        <span*/}
-                            {/*            className="relative dark:bg-[#2c2c2e] inline-flex items-center dark:hover:border-white dark:text-white px-4 py-2 text-sm font-medium text-black bg-white border border-black hover:bg-blue-300 cursor-pointer leading-5 rounded-md transition duration-150 ease-in-out focus:outline-none focus:shadow-outline-blue focus:border-blue-300 focus:z-10">*/}
-                            {/*            {currentPage}*/}
-                            {/*        </span>*/}
-                            {/*    )*/}
-                            {/*}*/}
                             {Array.from({length: shoes.totalPages}, (_, index) => index).map((pageNumber) => (
                                 <span key={pageNumber}>
                                       {pageNumber === shoes.number ? (
