@@ -1,22 +1,237 @@
 import React, { Suspense, useEffect, useState, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Environment, OrbitControls, Preload, PerspectiveCamera } from "@react-three/drei";
+import { Environment, OrbitControls, Preload, PerspectiveCamera, Html } from "@react-three/drei";
 import CanvasLoader from "../technical/Loader.jsx";
 import * as THREE from "three";
 import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { useFrame } from 'react-three-fiber';
+import TWEEN from '@tweenjs/tween.js'
+
+const ShoesModelContent = ({ camera, loadedModel, isMobile, scaleFactor, interactivePoints }) => {
+    const updateInteractivePointsRotation = () => {
+        interactivePoints.forEach((point) => {
+            if (point.ref.current && camera.current) {
+                const { x, y, z } = camera.current.position;
+                point.ref.current.lookAt(x, y, z);
+                const angle = Math.abs(camera.current.position.angleTo(point.ref.current.position));
+                const newOpacity = angle > Math.PI / 2 ? 0.2 : 0.7;
+                point.ref.current.material.opacity = newOpacity;
+            }
+        });
+    };
+    useFrame(() => {
+        updateInteractivePointsRotation();
+        TWEEN.update();
+    });
+    return (
+        <group>
+            <mesh>
+                <primitive
+                    object={loadedModel}
+                    scale={isMobile ? 6 * scaleFactor : 15.8 * scaleFactor}
+                    rotation={[-0.01, 1.5, -0.1]}
+                    position={[0, 0, 0]}
+                />
+            </mesh>
+            {interactivePoints.map((point, index) => (
+                <mesh
+                    key={index}
+                    ref={point.ref}
+                    onClick={() => point.onClick(index)}
+                    position={point.position}
+                    scale={0.1}
+                    material-roughness={1}
+                >
+                    <circleGeometry args={[1, 32]} attach="geometry" />
+                    <meshBasicMaterial
+                        attach="material"
+                        transparent
+                        opacity={0.8}
+                        depthTest={false}
+                    >
+                        <primitive
+                            attach="map"
+                            object={new THREE.TextureLoader().load("public/eye-svgrepo-com.png")}
+                        />
+                    </meshBasicMaterial>
+                </mesh>
+            ))}
+        </group>
+    );
+};
+
+const CameraToggleSwitch = ({ onClick }) => {
+    return (
+        <Html>
+            <div
+                style={{
+                position: "absolute",
+                top: "400px",
+                transform: "translateX(-50%)",
+                display: "flex",
+                alignItems: "center",
+                zIndex: "999",
+            }}>
+                <button
+                    onClick={onClick}
+                    style={{
+                        padding: "8px 16px",
+                        background: "rgba(255, 255, 255, 0.5)",
+                        color: "black",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer",
+                        outline: "none",
+                        marginRight: "10px",
+                        boxShadow: "0 2px 2px rgba(0, 0, 0, 0.1)",
+                        zIndex: "999",
+                    }}
+                >
+                    Reset
+                </button>
+            </div>
+        </Html>
+    );
+};
+
+const NavigationArrows = ({ onPrevClick, onNextClick }) => {
+    const buttonStyle = {
+        background: "rgba(255, 255, 255, 0.5)",
+        color: "black",
+        border: "none",
+        borderRadius: "4px",
+        padding: "8px 16px",
+        cursor: "pointer",
+        margin: "0 46px 0 36px",
+        boxShadow: "0 2px 2px rgba(0, 0, 0, 0.1)",
+    };
+
+    const containerStyle = {
+        position: "absolute",
+        top: "400px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+    };
+
+    return (
+        <Html>
+            <div style={containerStyle}>
+                <button style={buttonStyle} onClick={onPrevClick}>&lt;</button>
+                <button style={buttonStyle} onClick={onNextClick}>&gt;</button>
+            </div>
+        </Html>
+    );
+};
+
+
+
 
 const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
-    const [isTimerFinished, setTimerFinished] = useState(true);
     const camera = useRef();
     const canvasRef = useRef();
     const controls = useRef();
     const pointerDown = useRef(false);
-    const previousPointerPosition = useRef({ x: 0, y: 0 });
+    const previousPointerPosition = useRef({ x: 5, y: 5 });
     const timerRef = useRef(null);
+    const [isTimerFinished, setTimerFinished] = useState(true);
+    const [isGreenCircleClicked, setIsGreenCircleClicked] = useState(false);
+    const [clickedPointText, setClickedPointText] = useState("");
+    const [clickedPointPosition, setClickedPointPosition] = useState(null);
+    const [showText, setShowText] = useState(false);
+    const textBlockRef = useRef();
+    const [isResetButtonVisible, setResetButtonVisible] = useState(true);
+    const [isModelClicked, setIsModelClicked] = useState(false);
+    const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
+
+    const handleCameraToggle = () => {
+        const initialCameraPosition = [0, 0, 10];
+        const targetPosition = new THREE.Vector3().fromArray(initialCameraPosition);
+        const currentPosition = new THREE.Vector3().copy(camera.current.position);
+
+        new TWEEN.Tween(currentPosition)
+            .to(targetPosition, 900)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(() => {
+                camera.current.position.copy(currentPosition);
+            })
+            .onComplete(() => {
+                setResetButtonVisible(true);
+            })
+            .start();
+    };
+    const handlePrevCameraClick = () => {
+        const prevCameraIndex = (currentCameraIndex - 1 + interactivePoints.length) % interactivePoints.length;
+        setCurrentCameraIndex(prevCameraIndex);
+        focusOnCameraPoint(prevCameraIndex);
+        updateClickedPointInfo(prevCameraIndex);
+    };
+
+    const handleNextCameraClick = () => {
+        const nextCameraIndex = (currentCameraIndex + 1) % interactivePoints.length;
+        setCurrentCameraIndex(nextCameraIndex);
+        focusOnCameraPoint(nextCameraIndex);
+        updateClickedPointInfo(nextCameraIndex);
+    };
+
+    const updateClickedPointInfo = (index) => {
+        const clickedPoint = interactivePoints[index];
+        setClickedPointText(clickedPoint.text);
+        setClickedPointPosition([...clickedPoint.position]);
+        setShowText(true);
+    };
+
+    const focusOnCameraPoint = (index) => {
+        const targetPosition = interactivePoints[index].targetPosition;
+        const currentPosition = new THREE.Vector3().copy(camera.current.position);
+
+        new TWEEN.Tween(currentPosition)
+            .to(targetPosition, 900)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(() => {
+                camera.current.position.copy(currentPosition);
+            })
+            .onComplete(() => {
+                setResetButtonVisible(true);
+            })
+            .start();
+    };
+
+    const handleInteractivePointClick = (index) => {
+        const clickedPoint = interactivePoints[index];
+        setIsGreenCircleClicked(!isGreenCircleClicked);
+        setIsModelClicked(true);
+        if (clickedPoint.text) {
+            setClickedPointText(clickedPoint.text);
+        }
+        setClickedPointPosition([...clickedPoint.position]);
+        setShowText(!isGreenCircleClicked);
+
+        const targetPosition = clickedPoint.targetPosition;
+        const currentPosition = new THREE.Vector3().copy(camera.current.position);
+
+        new TWEEN.Tween(currentPosition)
+            .to(targetPosition, 900)
+            .easing(TWEEN.Easing.Quadratic.InOut)
+            .onUpdate(() => {
+                camera.current.position.copy(currentPosition);
+            })
+            .onComplete(() => {
+                setResetButtonVisible(true);
+            })
+            .start();
+    };
+
+    const [interactivePoints, setInteractivePoints] = useState([
+        { ref: useRef(), position: [0, 0, 0.5], color: "green", onClick: handleInteractivePointClick, text: "Text for Point 1", targetPosition: new THREE.Vector3(0, 0, 5) },
+        { ref: useRef(), position: [0, 1, 0.34], color: "green", onClick: handleInteractivePointClick, text: "Text for Point 2", targetPosition: new THREE.Vector3(0, 4, 3) },
+        { ref: useRef(), position: [0, -0.5, 0.34], color: "green", onClick: handleInteractivePointClick, text: "Text for Point 3", targetPosition: new THREE.Vector3(0, -4, 2) },
+    ]);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -88,15 +303,12 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
 
     const handlePointerMove = (event) => {
         if (!pointerDown.current) return;
-
         const deltaX = event.clientX - previousPointerPosition.current.x;
         const deltaY = event.clientY - previousPointerPosition.current.y;
-
         if (camera.current) {
             camera.current.rotation.x += deltaY * 0.01;
             camera.current.rotation.y += deltaX * 0.01;
         }
-
         previousPointerPosition.current = {
             x: event.clientX,
             y: event.clientY,
@@ -109,32 +321,62 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
 
     const restartTimer = () => {
         setTimerFinished(false);
-
         if (timerRef.current) {
             clearTimeout(timerRef.current);
         }
-
         timerRef.current = setTimeout(() => {
             setTimerFinished(true);
-            controls.current.autoRotate = isTimerFinished;
+            controls.current.autoRotate = isTimerFinished && !isModelClicked; // Используйте isModelClicked для проверки состояния нажатия на модель
+            canvasRef.current.dispatchEvent(new Event("pointerup"));
             restartTimer();
-        }, 3000);
+        }, 5000);
     };
 
     useEffect(() => {
-        const canvas = canvasRef.current;
+        const handlePointerUpGlobal = () => {
+            setIsModelClicked(false);
+        };
+        window.addEventListener("pointerup", handlePointerUpGlobal);
+        return () => {
+            window.removeEventListener("pointerup", handlePointerUpGlobal);
+        };
+    }, []);
 
+    useEffect(() => {
+        if (controls.current) {
+            controls.current.enablePan = false;
+            controls.current.enableDamping = true;
+            controls.current.dampingFactor = 8;
+            controls.current.rotateSpeed = 0.5;
+            controls.current.autoRotate = isTimerFinished;
+        }
+    }, [isTimerFinished]);
+
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
         if (canvas) {
             canvas.addEventListener("pointerdown", handlePointerDown);
             canvas.addEventListener("pointermove", handlePointerMove);
             canvas.addEventListener("pointerup", handlePointerUp);
-
             return () => {
                 canvas.removeEventListener("pointerdown", handlePointerDown);
                 canvas.removeEventListener("pointermove", handlePointerMove);
                 canvas.removeEventListener("pointerup", handlePointerUp);
             };
         }
+    }, []);
+
+    useEffect(() => {
+        const handleWindowClick = (event) => {
+            if (textBlockRef.current && !textBlockRef.current.contains(event.target)) {
+                setShowText(false);
+            }
+        };
+        window.addEventListener("pointerdown", handleWindowClick);
+        return () => {
+            window.removeEventListener("pointerdown", handleWindowClick);
+        };
     }, []);
 
     return (
@@ -150,9 +392,12 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                 <PerspectiveCamera ref={camera} makeDefault position={[0, 0, 10]} fov={30} />
                 <OrbitControls
                     target={[0, 0, 0]}
-                    autoRotate={isTimerFinished}
+                    enableDamping={true}
+                    enablePan={false}
+                    // autoRotate={isTimerFinished}
+                    onUpdate={() => {}}
+                    depthTest={false}
                 />
-
                 <directionalLight
                     position={[0, -10, 0]}
                     intensity={2.5}
@@ -179,19 +424,35 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                     shadow-camera-top={10}
                     shadow-camera-bottom={-10}
                 />
-
                 {loadedModel && (
-                    <mesh>
-                        <group>
-                            <primitive
-                                object={loadedModel}
-                                scale={isMobile ? 6 * scaleFactor : 15.8 * scaleFactor}
-                                rotation={[-0.01, 1.5, -0.1]}
-                                position={[0, 0, 0]}
-                            />
-                        </group>
-                    </mesh>
+                    <ShoesModelContent
+                        camera={camera}
+                        loadedModel={loadedModel}
+                        isMobile={isMobile}
+                        scaleFactor={scaleFactor}
+                        interactivePoints={interactivePoints}
+                    />
                 )}
+                {clickedPointText && showText && clickedPointPosition && (
+                    <Html position={clickedPointPosition.map((pos, index) => index === 2 ? -pos : pos)}>
+                        <div ref={textBlockRef} style={{
+                            color: "white",
+                            textAlign: "center",
+                            padding: "10px",
+                            background: "rgba(0, 0, 0, 0.7)",
+                            borderRadius: "5px",
+                            position: "absolute",
+                            top: "50%",  // Adjust as needed
+                            left: "50%",  // Adjust as needed
+                            transform: "translate(-50%, -50%)",
+                        }}>
+                            {clickedPointText}
+                        </div>
+                    </Html>
+                )}
+
+                <CameraToggleSwitch onClick={handleCameraToggle} />
+                <NavigationArrows onPrevClick={handlePrevCameraClick} onNextClick={handleNextCameraClick} />
                 <Environment preset="city" background={false} />
             </Suspense>
             <Preload all />

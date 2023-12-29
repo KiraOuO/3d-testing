@@ -11,7 +11,7 @@ const WithNavbar = ({ children }) => {
     };
 
     return (
-        <div className={`dark:bg-[#1c1c1e] bg-gray-200 overflow-y-auto object-cover`}>
+        <div className={`dark:bg-[#1c1c1e] z-50 bg-gray-200 overflow-y-auto object-cover`}>
             <Navbar selectedMode={selectedMode} updateSelectedMode={updateSelectedMode} />
             {children}
             <Footer />
