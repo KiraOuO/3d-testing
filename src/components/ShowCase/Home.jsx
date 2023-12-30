@@ -94,14 +94,22 @@ const Home = ({temp}) => {
         const delay = currentTime - lastClickTime;
 
         if (delay < 300) {
+            // Double-click behavior for model
             window.location.href = `/item?id=${param}`;
         } else {
             setLastClickTime(currentTime);
         }
     };
 
+    const handleIconClick = () => {
+        // Page navigation when the icon is clicked
+        navigate(`/item?id=${shoes.content[0].id}`); // Adjust this line based on your logic
+    };
+
+
 
     return (
+
         <section className={'flex flex-col min-h-screen bg-cover'} style={{ backgroundImage: `url(${background})`}}>
             <div className="pb-12 flex justify-center items-center h-full mb-0 relative">
                 <div className="mx-auto grid max-w-6xl gap-6 max-[375px]:grid-cols-1 grid-cols-2 lg:grid-cols-3">
@@ -128,6 +136,7 @@ const Home = ({temp}) => {
                                             src="/expand-screen.png"
                                             alt="expand screen"
                                             className="cursor-pointer sm:w-14 sm:pt-0 pt-4 w-10 h-10 sm:h-8"
+                                            onClick={handleIconClick}
                                         />
                                     </div>
                                 </div>

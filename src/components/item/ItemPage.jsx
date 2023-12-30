@@ -9,6 +9,7 @@ const ItemPage = () => {
     const [scaleFactor, setScaleFactor] = useState(1.0);
     const [targetShoe, setTargetShoe] = useState(null);
     const [background, setBackground] = useState(null);
+    const [showText, setShowText] = useState(false); // Add state to control text visibility
 
     const [containerStyles, setContainerStyles] = useState({
         position: "relative",
@@ -71,7 +72,6 @@ const ItemPage = () => {
                 backgroundPosition: "center center",
             };
 
-
             setContainerStyles(updatedContainerStyles);
         };
 
@@ -87,6 +87,10 @@ const ItemPage = () => {
         };
     }, [background]);
 
+    const handleInteractivePointClick = () => {
+        setShowText(!showText);
+    };
+
     return (
         <div className="h-[300px] object-center">
             <button
@@ -100,7 +104,12 @@ const ItemPage = () => {
                 </div>
             </button>
             <div className="h-full w-full" style={containerStyles}>
-                <ShoesModel shoe={targetShoe} camera={camera} scaleFactor={scaleFactor} />
+                <ShoesModel shoe={targetShoe} scaleFactor={scaleFactor} onClick={handleInteractivePointClick} />
+                {showText && (
+                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", color: "white", textAlign: "center", padding: "10px", background: "white", width: 50, height: 50, borderRadius: "5px", zIndex: "999" }}>
+                        Clicked! Display your text here.
+                    </div>
+                )}
             </div>
         </div>
     );
