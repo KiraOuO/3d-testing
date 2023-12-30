@@ -7,7 +7,6 @@ import axios from "axios";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import TWEEN from "@tweenjs/tween.js";
-import { Mesh } from "three";
 
 const initialRotation = new THREE.Euler(-0.01, -0.2, -0.1);
 
