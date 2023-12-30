@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { logo } from "../../../assets/index.js";
 import { getThemeFromLocalStorage, setThemeToLocalStorage } from "../ThemeStorage.js";
 
-const Navbar = () => {
+const Navbar = ({setTemp}) => {
     const [selectedMode, setSelectedMode] = useState(getThemeFromLocalStorage());
 
     const toggleTheme = (mode) => {
         document.documentElement.className = mode;
         setSelectedMode(mode);
+        setTemp(mode);
         setThemeToLocalStorage(mode);
     };
 
