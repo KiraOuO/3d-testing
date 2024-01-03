@@ -4,7 +4,6 @@ import "./CanvasLoader.css";
 
 const CanvasLoader = () => {
     const { progress } = useProgress();
-
     return (
         <Html center>
             <div className="loader-container">

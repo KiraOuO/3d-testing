@@ -35,6 +35,7 @@ const Home = ({temp}) => {
         first: false,
         empty: false,
     });
+
     const {pathname} = useLocation();
     const [lastClickTime, setLastClickTime] = useState(0);
     const navigate = useNavigate();
@@ -102,14 +103,10 @@ const Home = ({temp}) => {
     };
 
     const handleIconClick = () => {
-        // Page navigation when the icon is clicked
-        navigate(`/item?id=${shoes.content[0].id}`); // Adjust this line based on your logic
+        navigate(`/item?id=${shoes.content[0].id}`);
     };
 
-
-
     return (
-
         <section className={'flex flex-col min-h-screen bg-cover'} style={{ backgroundImage: `url(${background})`}}>
             <div className="pb-12 flex justify-center items-center h-full mb-0 relative">
                 <div className="mx-auto grid max-w-6xl gap-6 max-[375px]:grid-cols-1 grid-cols-2 lg:grid-cols-3">
