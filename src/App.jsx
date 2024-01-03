@@ -4,9 +4,7 @@ import { Navbar, Home, ItemPage, Footer } from './components';
 import { getThemeFromLocalStorage } from './components/technical/ThemeStorage';
 
 const WithNavbar = ({ children, setTemp }) => {
-
     return (
-
         <div className={`dark:bg-[#1c1c1e] bg-gray-200 overflow-y-auto object-cover`}>
             <Navbar setTemp={setTemp}/>
             {children}

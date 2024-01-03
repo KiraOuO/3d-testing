@@ -10,8 +10,9 @@ import TWEEN from "@tweenjs/tween.js";
 
 const initialRotation = new THREE.Euler(-0.01, -0.2, -0.1);
 
-const Shoe = ({ isMobile, shoe, forwardedRef, onMouseDown, onMouseUp }) => {
+const Shoe = ({ isMobile, shoe, forwardedRef, onMouseDown, onMouseUp, cameraDistance }) => {
     const [loadedModel, setLoadedModel] = useState();
+    const [scale, setScale] = useState(0.8);
 
     const url = `https://puppetpalm.com:9999/files/get-file?directory=${shoe.id}&filename=${shoe.lowPolygonPath}`;
 
@@ -34,6 +35,13 @@ const Shoe = ({ isMobile, shoe, forwardedRef, onMouseDown, onMouseUp }) => {
         loadModel();
     }, [url]);
 
+    useEffect(() => {
+        if (cameraDistance && loadedModel) {
+            const newScale = 0.4 / cameraDistance;
+            setScale(newScale);
+        }
+    }, [cameraDistance, loadedModel]);
+
     return (
         <mesh ref={forwardedRef} onPointerDown={onMouseDown} onPointerUp={onMouseUp}>
             {loadedModel && (
@@ -41,7 +49,7 @@ const Shoe = ({ isMobile, shoe, forwardedRef, onMouseDown, onMouseUp }) => {
                     <ambientLight />
                     <primitive
                         object={loadedModel}
-                        scale={isMobile ? 0.5 : 0.8}
+                        scale={[scale, scale, scale]}
                         position={isMobile ? [0, 0, 0] : [0, 0, 0]}
                         rotation={initialRotation}
                     />
@@ -56,6 +64,7 @@ const ShowCaseModels = ({ shoe }) => {
     const controls = useRef();
     const meshRef = useRef();
     const [shouldAnimateReset, setShouldAnimateReset] = useState(false);
+    const [cameraDistance, setCameraDistance] = useState(0);
 
     const handleResetCamera = () => {
         setShouldAnimateReset(true);
@@ -167,7 +176,6 @@ const ShowCaseModels = ({ shoe }) => {
             />
 
             <Shoe forwardedRef={meshRef} isMobile={false} shoe={shoe} />
-
             <Environment preset="city" background={false} />
             <Preload all />
         </Canvas>
