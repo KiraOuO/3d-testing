@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ShoesModel } from "../models/index.js";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
+import {getThemeFromLocalStorage} from "../technical/ThemeStorage.js";
 
 const ItemPage = () => {
     const camera = useRef();
@@ -9,6 +10,8 @@ const ItemPage = () => {
     const [scaleFactor, setScaleFactor] = useState(1.0);
     const [targetShoe, setTargetShoe] = useState(null);
     const [background, setBackground] = useState(null);
+    const [showText, setShowText] = useState(false); // Add state to control text visibility
+
 
     const [containerStyles, setContainerStyles] = useState({
         position: "relative",
@@ -25,6 +28,7 @@ const ItemPage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            let background;
             try {
                 const searchParams = new URLSearchParams(location.search);
                 const id = searchParams.get("id");
@@ -33,12 +37,16 @@ const ItemPage = () => {
                     `https://puppetpalm.com:9999/api/get-model-page/${id}`
                 );
                 setTargetShoe(responseShoe);
-
+                if(getThemeFromLocalStorage() === 'light'){
+                    background = responseShoe.data.backgroundPathLight;
+                } else {
+                    background =  responseShoe.data.backgroundPathDark;
+                }
                 const url =
                     "https://puppetpalm.com:9999/files/get-file?directory=" +
                     id +
                     "&filename=" +
-                    responseShoe.data.backgroundPath;
+                    background;
                 const response = await axios.get(url, { responseType: "arraybuffer" });
 
                 let arrayBufferView = new Uint8Array(response.data);
@@ -71,7 +79,6 @@ const ItemPage = () => {
                 backgroundPosition: "center center",
             };
 
-
             setContainerStyles(updatedContainerStyles);
         };
 
@@ -87,6 +94,10 @@ const ItemPage = () => {
         };
     }, [background]);
 
+    const handleInteractivePointClick = () => {
+        setShowText(!showText);
+    };
+
     return (
         <div className="h-[300px] object-center">
             <button
@@ -100,7 +111,12 @@ const ItemPage = () => {
                 </div>
             </button>
             <div className="h-full w-full" style={containerStyles}>
-                <ShoesModel shoe={targetShoe} camera={camera} scaleFactor={scaleFactor} />
+                <ShoesModel shoe={targetShoe} scaleFactor={scaleFactor} onClick={handleInteractivePointClick} />
+                {showText && (
+                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", color: "white", textAlign: "center", padding: "10px", background: "white", width: 50, height: 50, borderRadius: "5px", zIndex: "999" }}>
+                        Clicked! Display your text here.
+                    </div>
+                )}
             </div>
         </div>
     );
