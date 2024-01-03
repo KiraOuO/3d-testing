@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState, useRef } from "react";
+import React, {Suspense, useEffect, useState, useRef, useCallback} from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment, OrbitControls, Preload, PerspectiveCamera, Html } from "@react-three/drei";
 import CanvasLoader from "../technical/Loader.jsx";
@@ -209,7 +209,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             .onComplete(() => {
                 setResetButtonVisible(true);
                 updateClickedPointInfo(index);
-                gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out" });
+                gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color});
             })
         .start();
     };
@@ -235,16 +235,11 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             })
             .onComplete(() => {
                 setResetButtonVisible(true);
-                gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out" });
+                gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color });
             })
         .start();
     };
 
-    const [interactivePoints, setInteractivePoints] = useState([
-        { ref: useRef(), position: [-2.46, 0.16, 0.1], onClick: handleInteractivePointClick, text: "First sentence for Point 1. Second sentence for Point 1.", targetPosition: new THREE.Vector3(-6.46, 8.16, 4) },
-        { ref: useRef(), position: [1.64, 0.7, 0.18], onClick: handleInteractivePointClick, text: "First sentence for Point 2. Second sentence for Point 2.", targetPosition: new THREE.Vector3(6, 0, 4)},
-        { ref: useRef(), position: [-0.3, -0.8, -0.78], onClick: handleInteractivePointClick, text: "First sentence for Point 3. Second sentence for Point 3.", targetPosition: new THREE.Vector3(-4, -6, -4) },
-    ]);
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -261,7 +256,26 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         };
     }, []);
 
+
+    const [interactivePoints, setInteractivePoints] = useState([]);
+
+    const setPoints = useCallback((cameraPoints) => {
+        for (let i = 0; i < cameraPoints.length; i++) {
+            // const ref = React.useRef();
+            let interactivePoint = {
+                position: [cameraPoints[i].point_x_position, cameraPoints[i].point_y_position, cameraPoints[i].point_z_position],
+                onClick: handleInteractivePointClick,
+                text: cameraPoints[i].description,
+                color: cameraPoints[i].colorDescription,
+                targetPosition: new THREE.Vector3(cameraPoints[i].camera_x_position, cameraPoints[i].camera_y_position, cameraPoints[i].camera_z_position),
+                ref: React.createRef()
+            };
+            interactivePoints.push(interactivePoint);
+        }
+    }, []);
+
     useEffect(() => {
+
         const fetchData = async () => {
             try {
                 if (!shoe || !shoe.data) {
@@ -277,7 +291,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                 const responseModel = await axios.get(url, {
                     responseType: "arraybuffer",
                 });
-
+                setPoints(shoe.data.cameraPoints);
                 const dracoLoader = new DRACOLoader();
                 const gltfLoader = new GLTFLoader();
                 gltfLoader.setDRACOLoader(dracoLoader);
@@ -464,7 +478,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                                 ref={textBlockRef}
                                 className={showText.toString()}
                                 style={{
-                                    color: "#65c2f5",
+
                                     fontSize: "24px",
                                     textAlign: "start",
                                     padding: "20px",
