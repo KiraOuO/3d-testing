@@ -159,6 +159,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     const [isResetButtonVisible, setResetButtonVisible] = useState(true);
     const [isModelClicked, setIsModelClicked] = useState(false);
     const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
+    const [interactivePoints, setInteractivePoints] = useState([]);
 
     const handleCameraToggle = () => {
         const initialCameraPosition = [0, 0, 10];
@@ -240,25 +241,6 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         .start();
     };
 
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia("(max-width: 500px)");
-        setIsMobile(mediaQuery.matches);
-
-        const handleMediaQueryChange = (event) => {
-            setIsMobile(event.matches);
-        };
-
-        mediaQuery.addEventListener("change", handleMediaQueryChange);
-
-        return () => {
-            mediaQuery.removeEventListener("change", handleMediaQueryChange);
-        };
-    }, []);
-
-
-    const [interactivePoints, setInteractivePoints] = useState([]);
-
     const setPoints = useCallback((cameraPoints) => {
         for (let i = 0; i < cameraPoints.length; i++) {
             // const ref = React.useRef();
@@ -275,7 +257,6 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     }, []);
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 if (!shoe || !shoe.data) {
@@ -333,8 +314,8 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         const deltaX = event.clientX - previousPointerPosition.current.x;
         const deltaY = event.clientY - previousPointerPosition.current.y;
         if (camera.current) {
-            camera.current.rotation.x += deltaY * 0.01;
-            camera.current.rotation.y += deltaX * 0.01;
+            camera.current.rotation.x += deltaY * Math.PI;
+            camera.current.rotation.y += deltaX * Math.PI;
         }
         previousPointerPosition.current = {
             x: event.clientX,
@@ -368,17 +349,6 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             window.removeEventListener("pointerup", handlePointerUpGlobal);
         };
     }, []);
-
-    useEffect(() => {
-        if (controls.current) {
-            controls.current.enablePan = false;
-            controls.current.enableDamping = true;
-            controls.current.dampingFactor = 8;
-            controls.current.rotateSpeed = 0.5;
-            controls.current.autoRotate = isTimerFinished;
-        }
-    }, [isTimerFinished]);
-
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -431,11 +401,15 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                 <Suspense fallback={<CanvasLoader />}>
                     <PerspectiveCamera ref={camera} makeDefault position={[0, 0, 10]} fov={30} />
                     <OrbitControls
+                        // autoRotate={isTimerFinished}
+                        enableRotate={true}
                         target={[0, 0, 0]}
                         enableDamping={true}
                         enablePan={false}
                         onUpdate={() => {}}
                         depthTest={false}
+                        minPolarAngle={-2 * Math.PI}
+                        maxPolarAngle={2 * Math.PI}
                     />
                     <directionalLight
                         position={[0, -10, 0]}
