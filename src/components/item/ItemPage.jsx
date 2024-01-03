@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ShoesModel } from "../models/index.js";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
+import {getThemeFromLocalStorage} from "../technical/ThemeStorage.js";
 
 const ItemPage = () => {
     const camera = useRef();
@@ -10,6 +11,7 @@ const ItemPage = () => {
     const [targetShoe, setTargetShoe] = useState(null);
     const [background, setBackground] = useState(null);
     const [showText, setShowText] = useState(false); // Add state to control text visibility
+
 
     const [containerStyles, setContainerStyles] = useState({
         position: "relative",
@@ -26,6 +28,7 @@ const ItemPage = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            let background;
             try {
                 const searchParams = new URLSearchParams(location.search);
                 const id = searchParams.get("id");
@@ -34,12 +37,16 @@ const ItemPage = () => {
                     `https://puppetpalm.com:9999/api/get-model-page/${id}`
                 );
                 setTargetShoe(responseShoe);
-
+                if(getThemeFromLocalStorage() === 'light'){
+                    background = responseShoe.data.backgroundPathLight;
+                } else {
+                    background =  responseShoe.data.backgroundPathDark;
+                }
                 const url =
                     "https://puppetpalm.com:9999/files/get-file?directory=" +
                     id +
                     "&filename=" +
-                    responseShoe.data.backgroundPath;
+                    background;
                 const response = await axios.get(url, { responseType: "arraybuffer" });
 
                 let arrayBufferView = new Uint8Array(response.data);

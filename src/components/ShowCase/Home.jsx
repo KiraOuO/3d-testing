@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {ShowCaseModels} from "../models/index.js";
-import {useLocation} from "react-router-dom";
+import {redirect, useLocation} from "react-router-dom";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import styles from "./block.css";
@@ -56,7 +56,12 @@ const Home = ({temp}) => {
 
         axios
             .get(`https://puppetpalm.com:9999/api/get-showcase-page?page=${page - 1}&size=${size}`)
-            .then((response) => setShoes(response.data))
+            .then((response) => {
+                if (response.data.empty){
+                    window.location.href = "/not-found";
+                }
+                setShoes(response.data);
+            } )
             .catch((error) => console.error('Error during the request:', error.message));
     }, []);
 
