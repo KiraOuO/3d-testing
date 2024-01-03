@@ -478,7 +478,6 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                                 ref={textBlockRef}
                                 className={showText.toString()}
                                 style={{
-
                                     fontSize: "24px",
                                     textAlign: "start",
                                     padding: "20px",
