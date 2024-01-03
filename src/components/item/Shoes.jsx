@@ -209,7 +209,9 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             .onComplete(() => {
                 setResetButtonVisible(true);
                 updateClickedPointInfo(index);
-                gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color});
+                if(textBlockRef.current !== undefined){
+                    gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color });
+                }
             })
         .start();
     };
@@ -235,7 +237,10 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             })
             .onComplete(() => {
                 setResetButtonVisible(true);
-                gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color });
+                if(textBlockRef.current !== undefined){
+                    gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color });
+                }
+
             })
         .start();
     };
