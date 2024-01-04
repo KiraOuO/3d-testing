@@ -106,8 +106,11 @@ const ItemPage = () => {
                     window.history.back();
                 }}
             >
-                <div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
-                    <img src="/expand-screen.png" alt="expand screen" className="cursor-pointer" />
+                {/*<div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">*/}
+                {/*    <img src="/expand-screen.png" alt="expand screen" className="cursor-pointer" />*/}
+                {/*</div>*/}
+                <div className="sm:w-24 w-24 ml-3 z-50 bg-white h-18 sm:h-18 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
+                    <p className="text-2xl">Go Back</p>
                 </div>
             </button>
             <div className="h-full w-full" style={containerStyles}>
