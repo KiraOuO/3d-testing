@@ -153,7 +153,7 @@ const Home = ({temp}) => {
                     className="max-w-full dark:bg-[#2c2c2e] md:max-w-screen-md lg:max-w-screen-lg xl:max-w-screen-xl bg-white p-6 rounded-lg mx-auto shadow-sm">
                     <div className="flex justify-center">
                         <nav className="flex space-x-2" aria-label="Pagination">
-                            {shoes.last && (
+                            {!shoes.first && (
                                 <a
                                     href={`/?page=${currentPage - 1}&size=${currentSize}`}
                                     className="relative dark:text-white inline-flex items-center px-4 py-2 text-sm border border-black hover:border-violet-100 text-black font-semibold cursor-pointer leading-5 rounded-md transition duration-150 ease-in-out focus:outline-none focus:shadow-outline-blue focus:border-blue-300 focus:z-10"
@@ -176,7 +176,7 @@ const Home = ({temp}) => {
                                       )}
                                 </span>
                             ))}
-                            {shoes.first && (
+                            {!shoes.last && (
                                 <a
                                     href={`/?page=${currentPage + 1}&size=${currentSize}`}
                                     className="relative dark:text-white inline-flex items-center px-4 py-2 text-sm border border-black hover:border-violet-100 text-black font-semibold cursor-pointer leading-5 rounded-md transition duration-150 ease-in-out focus:outline-none focus:shadow-outline-blue focus:border-blue-300 focus:z-10"
