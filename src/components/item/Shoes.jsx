@@ -31,21 +31,7 @@ const ShoesModelContent = ({ camera, loadedModel, isMobile, scaleFactor, interac
     return (
         <group>
             <mesh>
-                <primitive
-                    object={loadedModel}
-                    scale={isMobile ? 6 * scaleFactor : 15.8 * scaleFactor}
-                    rotation={[-0.01, 1.5, -0.1]}
-                    position={[0, 0, 0]}
-                />
-            </mesh>
-            <mesh
-                onClick={() => handleMiddlePointClick()}
-                position={[0, 0, 0]}
-                scale={0.1}
-                material-roughness={1}
-            >
-                <circleGeometry args={[1, 32]} attach="geometry" />
-                <meshBasicMaterial attach="material" color="red" />
+                <primitive object={loadedModel} rotation={[-0.01, 1.5, -0.1]} position={[0, 0, 0]} />
             </mesh>
             {interactivePoints.map((point, index) => (
                 <mesh
@@ -53,7 +39,7 @@ const ShoesModelContent = ({ camera, loadedModel, isMobile, scaleFactor, interac
                     ref={point.ref}
                     onClick={() => point.onClick(index)}
                     position={point.position}
-                    scale={0.1}
+                    scale={0.01}
                     material-roughness={1}
                     castShadow
                     receiveShadow
@@ -67,7 +53,7 @@ const ShoesModelContent = ({ camera, loadedModel, isMobile, scaleFactor, interac
                     >
                         <primitive
                             attach="map"
-                            object={new THREE.TextureLoader().load("public/point.png")}
+                            object={new THREE.TextureLoader().load("/point.png")}
                         />
                     </meshBasicMaterial>
                 </mesh>
@@ -161,9 +147,11 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
 
     const handleCameraToggle = () => {
-        const initialCameraPosition = [0, 0, 10];
+        const initialCameraPosition = [0, 0, 2];
         const targetPosition = new THREE.Vector3().fromArray(initialCameraPosition);
         const currentPosition = new THREE.Vector3().copy(camera.current.position);
+        const zoomFactor = window.innerWidth > 768 ? 0.5 : 1.8;
+        targetPosition.multiplyScalar(zoomFactor);
 
         new TWEEN.Tween(currentPosition)
             .to(targetPosition, 900)
@@ -176,6 +164,21 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             })
             .start();
     };
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(max-width: 500px)");
+        setIsMobile(mediaQuery.matches);
+
+        const handleMediaQueryChange = (event) => {
+            setIsMobile(event.matches);
+        };
+
+        mediaQuery.addEventListener("change", handleMediaQueryChange);
+
+        return () => {
+            mediaQuery.removeEventListener("change", handleMediaQueryChange);
+        };
+    }, []);
 
     const handlePrevCameraClick = () => {
         const prevCameraIndex = (currentCameraIndex - 1 + interactivePoints.length) % interactivePoints.length;
@@ -199,6 +202,9 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     const focusOnCameraPoint = (index) => {
         const targetPosition = interactivePoints[index].targetPosition;
         const currentPosition = new THREE.Vector3().copy(camera.current.position);
+
+        const zoomFactor = window.innerWidth > 768 ? 0.5 : 1.8;
+        targetPosition.multiplyScalar(zoomFactor);
 
         new TWEEN.Tween(currentPosition)
             .to(targetPosition, 900)
@@ -226,43 +232,37 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         setClickedPointPosition([...clickedPoint.position]);
         setShowText(!isGreenCircleClicked);
 
-        const targetPosition = clickedPoint.targetPosition;
-        const currentPosition = new THREE.Vector3().copy(camera.current.position);
+        if (!isModelClicked && !isGreenCircleClicked) {
+            setIsModelClicked(true);
 
-        new TWEEN.Tween(currentPosition)
-            .to(targetPosition, 900)
-            .easing(TWEEN.Easing.Quadratic.InOut)
-            .onUpdate(() => {
-                camera.current.position.copy(currentPosition);
-            })
-            .onComplete(() => {
-                setResetButtonVisible(true);
-                if(textBlockRef.current !== undefined){
-                    gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color });
-                }
+            const targetPosition = clickedPoint.targetPosition.clone();
+            const currentPosition = new THREE.Vector3().copy(camera.current.position);
 
-            })
-        .start();
+            const zoomFactor = window.innerWidth > 768 ? 0.4 : 1.0;
+            targetPosition.multiplyScalar(zoomFactor);
+
+            new TWEEN.Tween(currentPosition)
+                .to(targetPosition, 900)
+                .easing(TWEEN.Easing.Quadratic.InOut)
+                .onUpdate(() => {
+                    camera.current.position.copy(currentPosition);
+                })
+                .onComplete(() => {
+                    setResetButtonVisible(true);
+                    if (textBlockRef.current !== undefined) {
+                        gsap.to(textBlockRef.current.style, { opacity: 1, duration: 0.3, ease: "power3.out", color: interactivePoints[index].color });
+                    }
+                    setIsGreenCircleClicked(false);
+                })
+                .start();
+        }
     };
 
-
-    useEffect(() => {
-        const mediaQuery = window.matchMedia("(max-width: 500px)");
-        setIsMobile(mediaQuery.matches);
-
-        const handleMediaQueryChange = (event) => {
-            setIsMobile(event.matches);
-        };
-
-        mediaQuery.addEventListener("change", handleMediaQueryChange);
-
-        return () => {
-            mediaQuery.removeEventListener("change", handleMediaQueryChange);
-        };
-    }, []);
-
-
-    const [interactivePoints, setInteractivePoints] = useState([]);
+    const [interactivePoints, setInteractivePoints] = useState([
+        { ref: useRef(), position: [-0.146, 0.012, 0.01], onClick: handleInteractivePointClick, text: "top", targetPosition: new THREE.Vector3(-1.5, 1.6, 0.8) },
+        { ref: useRef(), position: [-0.01, -0.045, -0.05], onClick: handleInteractivePointClick, text: "middle", targetPosition: new THREE.Vector3(-1.2, -2.5, -0.9) },
+        { ref: useRef(), position: [0.1, 0.06, 0.01], onClick: handleInteractivePointClick, text: "bottom", targetPosition: new THREE.Vector3(2, 0, 0.8)},
+    ]);
 
     const setPoints = useCallback((cameraPoints) => {
         for (let i = 0; i < cameraPoints.length; i++) {
@@ -280,7 +280,6 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     }, []);
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 if (!shoe || !shoe.data) {
@@ -296,7 +295,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                 const responseModel = await axios.get(url, {
                     responseType: "arraybuffer",
                 });
-                setPoints(shoe.data.cameraPoints);
+                // setPoints(shoe.data.cameraPoints);
                 const dracoLoader = new DRACOLoader();
                 const gltfLoader = new GLTFLoader();
                 gltfLoader.setDRACOLoader(dracoLoader);
@@ -338,8 +337,8 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         const deltaX = event.clientX - previousPointerPosition.current.x;
         const deltaY = event.clientY - previousPointerPosition.current.y;
         if (camera.current) {
-            camera.current.rotation.x += deltaY * 0.01;
-            camera.current.rotation.y += deltaX * 0.01;
+            camera.current.rotation.x += deltaY * Math.PI;
+            camera.current.rotation.y += deltaX * Math.PI;
         }
         previousPointerPosition.current = {
             x: event.clientX,
@@ -375,17 +374,6 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     }, []);
 
     useEffect(() => {
-        if (controls.current) {
-            controls.current.enablePan = false;
-            controls.current.enableDamping = true;
-            controls.current.dampingFactor = 8;
-            controls.current.rotateSpeed = 0.5;
-            controls.current.autoRotate = isTimerFinished;
-        }
-    }, [isTimerFinished]);
-
-
-    useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
             canvas.addEventListener("pointerdown", handlePointerDown);
@@ -399,48 +387,31 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         }
     }, []);
 
-    useEffect(() => {
-        const handleWindowResize = () => {
-            const newFOV = window.innerWidth < 600 ? 92 : 30;
-            camera.current.fov = newFOV;
-            camera.current.updateProjectionMatrix();
-        };
-
-        window.addEventListener("resize", handleWindowResize);
-
-        return () => {
-            window.removeEventListener("resize", handleWindowResize);
-        };
-    }, []);
-
-    useEffect(() => {
-        const handleWindowClick = (event) => {
-            if (textBlockRef.current && !textBlockRef.current.contains(event.target)) {
-                setShowText(false);
-            }
-        };
-        window.addEventListener("pointerdown", handleWindowClick);
-        return () => {
-            window.removeEventListener("pointerdown", handleWindowClick);
-        };
-    }, []);
-
-        return (
+    return (
             <Canvas
                 gl={gl}
                 onCreated={({ gl }) => {
                     gl.shadowMap.enabled = true;
                     gl.shadowMap.type = THREE.PCFSoftShadowMap;
                 }}
-                ref={canvasRef}>
+            >
                 <Suspense fallback={<CanvasLoader />}>
-                    <PerspectiveCamera ref={camera} makeDefault position={[0, 0, 10]} fov={30} />
+                    <PerspectiveCamera
+                        ref={camera}
+                        makeDefault
+                        position={isMobile ? [0, 0, 3.6] : [0, 0, 1]}
+                        fov={isMobile ? 15 : 20}
+                    />
                     <OrbitControls
+                        // autoRotate={isTimerFinished}
+                        enableRotate={true}
                         target={[0, 0, 0]}
                         enableDamping={true}
                         enablePan={false}
                         onUpdate={() => {}}
                         depthTest={false}
+                        minPolarAngle={-2 * Math.PI}
+                        maxPolarAngle={2 * Math.PI}
                     />
                     <directionalLight
                         position={[0, -10, 0]}
