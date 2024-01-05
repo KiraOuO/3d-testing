@@ -99,23 +99,29 @@ const ItemTechnicalPage = () => {
 
     return (
         <div className="h-[300px] object-center">
+                <button
+                    className="flex items-center my-8 h-6 w-12"
+                    onClick={() => {
+                        if (camera.current) {
+                            alert(`Camera Position: X: ${camera.current.position.x.toFixed(2)}, Y: ${camera.current.position.y.toFixed(2)}, Z: ${camera.current.position.z.toFixed(2)}`);
+                        } else {
+                            alert('Camera position is not available yet. Please wait for the data to load.');
+                        }
+                    }}
+                >
 
+                    <div className="sm:w-24 w-24 ml-3 z-50 bg-white bg-opacity-80 h-12 sm:h-12 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
+                        <span>Show Coordinates</span>
+                    </div>
+                </button>
+                <button
+                    className="flex items-center my-6 h-6 w-12"
+                >
 
-            <button
-                className="flex items-center my-6 h-6 w-12"
-                onClick={() => {
-                    if (camera.current) {
-                        alert(`Camera Position: X: ${camera.current.position.x.toFixed(2)}, Y: ${camera.current.position.y.toFixed(2)}, Z: ${camera.current.position.z.toFixed(2)}`);
-                    } else {
-                        alert('Camera position is not available yet. Please wait for the data to load.');
-                    }
-                }}
-            >
-
-                <div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
-                    <img src="/expand-screen.png" alt="expand screen" className="cursor-pointer" />
-                </div>
-            </button>
+                    <div className="sm:w-24 bg-opacity-80 w-24 ml-3 z-50 bg-white h-12 sm:h-12 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
+                        <span>Update Coordinates</span>
+                    </div>
+                </button>
 
             <div className="h-full w-full" style={containerStyles}>
                 <ShoesModel shoe={targetShoe} scaleFactor={scaleFactor} camera={camera} onClick={handleInteractivePointClick} />
