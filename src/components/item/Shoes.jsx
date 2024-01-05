@@ -127,10 +127,9 @@ const NavigationArrows = ({ onPrevClick, onNextClick }) => {
     );
 };
 
-const ShoesModel = ({ gl, shoe, scaleFactor }) => {
+const ShoesModel = ({ gl, shoe, scaleFactor, camera }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
-    const camera = useRef();
     const canvasRef = useRef();
     const controls = useRef();
     const pointerDown = useRef(false);
@@ -145,7 +144,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     const [isResetButtonVisible, setResetButtonVisible] = useState(true);
     const [isModelClicked, setIsModelClicked] = useState(false);
     const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
-
+    // const [interactivePoints, setInteractivePoints] = useState([]);
     const handleCameraToggle = () => {
         const initialCameraPosition = [0, 0, 2];
         const targetPosition = new THREE.Vector3().fromArray(initialCameraPosition);
@@ -172,6 +171,8 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         const handleMediaQueryChange = (event) => {
             setIsMobile(event.matches);
         };
+
+
 
         mediaQuery.addEventListener("change", handleMediaQueryChange);
 
@@ -258,15 +259,12 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         }
     };
 
+
     const [interactivePoints, setInteractivePoints] = useState([
-        { ref: useRef(), position: [-0.146, 0.012, 0.01], onClick: handleInteractivePointClick, text: "top", targetPosition: new THREE.Vector3(-1.5, 1.6, 0.8) },
-        { ref: useRef(), position: [-0.01, -0.045, -0.05], onClick: handleInteractivePointClick, text: "middle", targetPosition: new THREE.Vector3(-1.2, -2.5, -0.9) },
-        { ref: useRef(), position: [0.1, 0.06, 0.01], onClick: handleInteractivePointClick, text: "bottom", targetPosition: new THREE.Vector3(2, 0, 0.8)},
     ]);
 
     const setPoints = useCallback((cameraPoints) => {
         for (let i = 0; i < cameraPoints.length; i++) {
-            // const ref = React.useRef();
             let interactivePoint = {
                 position: [cameraPoints[i].point_x_position, cameraPoints[i].point_y_position, cameraPoints[i].point_z_position],
                 onClick: handleInteractivePointClick,
@@ -278,6 +276,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             interactivePoints.push(interactivePoint);
         }
     }, []);
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -410,8 +409,8 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                         enablePan={false}
                         onUpdate={() => {}}
                         depthTest={false}
-                        minPolarAngle={-2 * Math.PI}
-                        maxPolarAngle={2 * Math.PI}
+                        minPolarAngle={0}
+                        maxPolarAngle={Math.PI}
                     />
                     <directionalLight
                         position={[0, -10, 0]}
