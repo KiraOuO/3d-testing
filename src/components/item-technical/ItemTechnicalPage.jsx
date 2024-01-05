@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import axios from "axios";
 import {getThemeFromLocalStorage} from "../technical/ThemeStorage.js";
 
-const ItemPage = () => {
+const ItemTechnicalPage = () => {
     const location = useLocation();
     const [scaleFactor, setScaleFactor] = useState(1.0);
     const [targetShoe, setTargetShoe] = useState(null);
@@ -99,16 +99,24 @@ const ItemPage = () => {
 
     return (
         <div className="h-[300px] object-center">
+
+
             <button
                 className="flex items-center my-6 h-6 w-12"
                 onClick={() => {
-                    window.history.back();
+                    if (camera.current) {
+                        alert(`Camera Position: X: ${camera.current.position.x.toFixed(2)}, Y: ${camera.current.position.y.toFixed(2)}, Z: ${camera.current.position.z.toFixed(2)}`);
+                    } else {
+                        alert('Camera position is not available yet. Please wait for the data to load.');
+                    }
                 }}
             >
+
                 <div className="sm:w-9 w-8 ml-3 z-50 bg-white h-7 sm:h-7 text-xs px-2 pt-1 font-semibold rounded uppercase hover:bg-gray-700 flex items-start">
                     <img src="/expand-screen.png" alt="expand screen" className="cursor-pointer" />
                 </div>
             </button>
+
             <div className="h-full w-full" style={containerStyles}>
                 <ShoesModel shoe={targetShoe} scaleFactor={scaleFactor} camera={camera} onClick={handleInteractivePointClick} />
                 {showText && (
@@ -117,8 +125,10 @@ const ItemPage = () => {
                     </div>
                 )}
             </div>
+
         </div>
+
     );
 };
 
-export default ItemPage;
+export default ItemTechnicalPage;
