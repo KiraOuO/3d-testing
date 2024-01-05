@@ -127,10 +127,9 @@ const NavigationArrows = ({ onPrevClick, onNextClick }) => {
     );
 };
 
-const ShoesModel = ({ gl, shoe, scaleFactor }) => {
+const ShoesModel = ({ gl, shoe, scaleFactor, camera }) => {
     const [isMobile, setIsMobile] = useState(false);
     const [loadedModel, setLoadedModel] = useState(null);
-    const camera = useRef();
     const canvasRef = useRef();
     const controls = useRef();
     const pointerDown = useRef(false);
@@ -145,7 +144,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     const [isResetButtonVisible, setResetButtonVisible] = useState(true);
     const [isModelClicked, setIsModelClicked] = useState(false);
     const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
-    const [interactivePoints, setInteractivePoints] = useState([]);
+    // const [interactivePoints, setInteractivePoints] = useState([]);
     const handleCameraToggle = () => {
         const initialCameraPosition = [0, 0, 2];
         const targetPosition = new THREE.Vector3().fromArray(initialCameraPosition);
@@ -172,6 +171,8 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
         const handleMediaQueryChange = (event) => {
             setIsMobile(event.matches);
         };
+
+
 
         mediaQuery.addEventListener("change", handleMediaQueryChange);
 
@@ -259,6 +260,8 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
     };
 
 
+    const [interactivePoints, setInteractivePoints] = useState([
+    ]);
 
     const setPoints = useCallback((cameraPoints) => {
         for (let i = 0; i < cameraPoints.length; i++) {
@@ -273,7 +276,6 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
             interactivePoints.push(interactivePoint);
         }
     }, []);
-
 
 
     useEffect(() => {
@@ -292,7 +294,7 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                 const responseModel = await axios.get(url, {
                     responseType: "arraybuffer",
                 });
-                setPoints(shoe.data.cameraPoints);
+                // setPoints(shoe.data.cameraPoints);
                 const dracoLoader = new DRACOLoader();
                 const gltfLoader = new GLTFLoader();
                 gltfLoader.setDRACOLoader(dracoLoader);
@@ -407,8 +409,8 @@ const ShoesModel = ({ gl, shoe, scaleFactor }) => {
                         enablePan={false}
                         onUpdate={() => {}}
                         depthTest={false}
-                        minPolarAngle={-2 * Math.PI}
-                        maxPolarAngle={2 * Math.PI}
+                        minPolarAngle={0}
+                        maxPolarAngle={Math.PI}
                     />
                     <directionalLight
                         position={[0, -10, 0]}
