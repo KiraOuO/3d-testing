@@ -1,5 +1,5 @@
 import React, {Suspense, useEffect, useState, useRef, useCallback} from "react";
-import { Canvas } from "@react-three/fiber";
+import {Canvas, useFrame} from "@react-three/fiber";
 import { Environment, OrbitControls, Preload, PerspectiveCamera } from "@react-three/drei";
 import CanvasLoader from "../technical/Loader.jsx";
 import * as THREE from "three";
@@ -12,8 +12,7 @@ import NavigationArrows from "./navigation_arrows.jsx";
 import { animateCameraPosition, animateTextBlock } from "./camera_animation.js";
 import TextBlock from "./calling_text_block.jsx";
 import LightAndEnvironment from "./light_and_enviroment.jsx";
-import RotatingTagWithPhysics from "./tag.jsx";
-import {Physics} from "@react-three/cannon";
+import * as Ammo from 'ammo.js';
 
 
 
@@ -36,6 +35,12 @@ const ShoesModel = ({ gl, shoe, zoom, scaleFactor }) => {
     const [isModelClicked, setIsModelClicked] = useState(false);
     const [currentCameraIndex, setCurrentCameraIndex] = useState(0);
     const [interactivePoints, setInteractivePoints] = useState([]);
+    const [dynamicsWorld, setDynamicsWorld] = useState(null);
+    const [rope, setRope] = useState(null);
+    const [tag, setTag] = useState(null);
+    const tagControls = useRef();
+
+
 
     useEffect(() => {
         const mediaQuery = window.matchMedia("(max-width: 500px)");
@@ -194,6 +199,7 @@ const ShoesModel = ({ gl, shoe, zoom, scaleFactor }) => {
         pointerDown.current = false;
     };
 
+
     const restartTimer = () => {
         setTimerFinished(false);
         if (timerRef.current) {
@@ -254,7 +260,110 @@ const ShoesModel = ({ gl, shoe, zoom, scaleFactor }) => {
         };
     }, []);
 
-        return (
+    useEffect(() => {
+        const initPhysics = () => {
+            const collisionConfiguration = new Ammo.btDefaultCollisionConfiguration();
+            const dispatcher = new Ammo.btCollisionDispatcher(collisionConfiguration);
+            const overlappingPairCache = new Ammo.btDbvtBroadphase();
+            const solver = new Ammo.btSequentialImpulseConstraintSolver();
+            const world = new Ammo.btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+            world.setGravity(new Ammo.btVector3(0, -9.8, 0));
+            setDynamicsWorld(world);
+        };
+
+        initPhysics();
+        return () => {
+            if (dynamicsWorld) {
+                Ammo.destroy(dynamicsWorld);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        const createRope = () => {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            vertices.push(new THREE.Vector3(-0.04, 0.045, -0.045));
+            vertices.push(new THREE.Vector3(-0.04, -0.03, -0.06)); // Change coordinates as needed
+            geometry.setFromPoints(vertices);
+            const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+            const line = new THREE.Line(geometry, material);
+            setRope(line);
+        };
+
+        createRope();
+
+        return () => {
+            if (rope) {
+                rope.geometry.dispose();
+                rope.material.dispose();
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        const createTag = () => {
+            const geometry = new THREE.BoxGeometry(0.02, 0.03, 0.03);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(-0.04, -0.03, -0.07); // Set desired position here
+            setTag(mesh);
+        };
+
+        createTag();
+
+        return () => {
+            if (tag) {
+                tag.geometry.dispose();
+                tag.material.dispose();
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (dynamicsWorld && rope && tag) {
+            const ropeBody = addPhysicsObject(dynamicsWorld, rope, 0); // Rope has no mass
+            const tagBody = addPhysicsObject(dynamicsWorld, tag, 1); // Tag (rectangle) has mass 1
+
+            // Attach rope and tag
+            const pivotA = new Ammo.btVector3(-0.04, -0.03, -0.06); // Attachment position on rope
+            const pivotB = new Ammo.btVector3(-0.04, -0.03, -0.06); // Attachment position on tag
+            const ropeConstraint = new Ammo.btPoint2PointConstraint(ropeBody, tagBody, pivotA, pivotB);
+            dynamicsWorld.addConstraint(ropeConstraint);
+        }
+    }, [dynamicsWorld, rope, tag]);
+
+    const addPhysicsObject = (world, object, mass) => {
+        const shape = new Ammo.btBoxShape(new Ammo.btVector3(1, 1, 1)); // Use appropriate shape for your object
+        const transform = new Ammo.btTransform();
+        transform.setIdentity();
+        transform.setOrigin(new Ammo.btVector3(object.position.x, object.position.y, object.position.z));
+        const motionState = new Ammo.btDefaultMotionState(transform);
+        const localInertia = new Ammo.btVector3(2, 1, 2);
+        shape.calculateLocalInertia(mass, localInertia);
+        const rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
+        const body = new Ammo.btRigidBody(rbInfo);
+        world.addRigidBody(body);
+        return body;
+    };
+
+    const updatePhysicsWorld = () => {
+        if (dynamicsWorld) {
+            const deltaTime = 1 / 60;
+            dynamicsWorld.stepSimulation(deltaTime, 10);
+        }
+    };
+
+    const renderFrame = () => {
+        updatePhysicsWorld();
+        requestAnimationFrame(renderFrame);
+    };
+
+    useEffect(() => {
+        renderFrame();
+    }, []);
+
+    return (
             <Canvas
                 gl={gl}
                 onCreated={({ gl }) => {
@@ -270,6 +379,7 @@ const ShoesModel = ({ gl, shoe, zoom, scaleFactor }) => {
                         fov={isMobile ? 15 : 20}
                     />
                     <OrbitControls
+
                         target={[0, 0, 0]}
                         enableDamping={true}
                         enablePan={false}
@@ -277,19 +387,16 @@ const ShoesModel = ({ gl, shoe, zoom, scaleFactor }) => {
                         depthTest={false}
                     />
                     <LightAndEnvironment />
-                    <Physics>
                     {loadedModel && (
-                        <>
+
                         <ShoesModelContent
                             camera={camera}
                             loadedModel={loadedModel}
                             scaleFactor={scaleFactor}
                             interactivePoints={interactivePoints}
                         />
-                            <RotatingTagWithPhysics parentObject={loadedModel} />
-                        </>
+
                     )}
-                    </Physics>
 
                     {clickedPointText && showText && clickedPointPosition && (
                         <TextBlock showText={showText} text={clickedPointText} textBlockRef={textBlockRef} />
@@ -298,7 +405,8 @@ const ShoesModel = ({ gl, shoe, zoom, scaleFactor }) => {
                     <ResetButton onClick={() => cameraResetButton(currentCameraIndex)} />
                     <NavigationArrows onPrevClick={prevCameraClick} onNextClick={nextCameraClick} />
                     <Environment preset="city" background={false} />
-
+                    {rope && <primitive object={rope} />}
+                    {tag && <primitive object={tag} />}
 
                 </Suspense>
                 <Preload all />

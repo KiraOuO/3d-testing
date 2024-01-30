@@ -15,6 +15,7 @@
     "@react-three/cannon": "^6.6.0",
     "@react-three/drei": "^9.92.7",
     "@tweenjs/tween.js": "^21.0.0",
+    "ammo.js": "^0.0.10",
     "axios": "^1.6.2",
     "cannon": "^0.6.2",
     "drei": "^1.5.7",
